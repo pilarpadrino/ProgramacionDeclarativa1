@@ -1,21 +1,20 @@
 import scala.annotation.tailrec
-import scala.collection.mutable.ListBuffer
-
-// Definición global del tipo Bit
-type Bit = 0 | 1
 
 // Clase base para el Árbol de Huffman
-abstract class ArbolHuffman {
+sealed abstract class ArbolHuffman {
+  // Devuelve el peso de un ArbolHuffman
   def peso: Int = this match {
     case HojaHuff(_, pesoHoja) => pesoHoja
     case RamaHuff(izq, dch) => izq.peso + dch.peso
   }
 
+  // Devuelve la lista de caracteres de un ArbolHuffman
   def caracteres: List[Char] = this match {
     case HojaHuff(caracter, _) => List(caracter)
     case RamaHuff(izq, dch) => izq.caracteres ++ dch.caracteres
   }
 
+  // Decodifica una lista de bits y devuelve el mensaje resultante
   def decodificar(bits: List[Bit]): String = {
     @tailrec
     def decodAux(subarbol: ArbolHuffman, bitsRestantes: List[Bit], resultado: String): String = subarbol match {
@@ -29,14 +28,17 @@ abstract class ArbolHuffman {
           case 1 :: tail => decodAux(dch, tail, resultado)
         }
     }
+
     decodAux(this, bits, "")
   }
 
+  // Comprueba si el árbol contiene un carácter específico
   def contieneCaracter(caracter: Char): Boolean = this match {
     case HojaHuff(c, _) => c == caracter
     case RamaHuff(izq, dch) => izq.contieneCaracter(caracter) || dch.contieneCaracter(caracter)
   }
 
+  // Codifica una cadena en una lista de bits
   def codificar(cadena: String): List[Bit] = {
     def caminoParaCaracter(subarbol: ArbolHuffman, caracter: Char, camino: List[Bit]): List[Bit] = subarbol match {
       case HojaHuff(c, _) if c == caracter => camino
@@ -46,11 +48,7 @@ abstract class ArbolHuffman {
       case _ => List()
     }
 
-    val bitsCodificados = ListBuffer[Bit]()
-    for (caracter <- cadena) {
-      bitsCodificados ++= caminoParaCaracter(this, caracter, List())
-    }
-    bitsCodificados.toList
+    cadena.toList.flatMap(caracter => caminoParaCaracter(this, caracter, List()))
   }
 }
 
@@ -58,90 +56,85 @@ abstract class ArbolHuffman {
 case class HojaHuff(caracter: Char, pesoHoja: Int) extends ArbolHuffman
 case class RamaHuff(izq: ArbolHuffman, dch: ArbolHuffman) extends ArbolHuffman
 
-// Objeto para construir el árbol de Huffman
-object HuffmanTreeBuilder {
-  def ListaCharsADistFrec(listaChars: List[Char]): List[(Char, Int)] = {
-    listaChars.groupBy(identity).view.mapValues(_.size).toList
-  }
+// Convierte el string a una lista de caracteres
+def cadenaAListaChars(cadena: String): List[Char] = cadena.toList
 
-  def DistribFrecAListaHojas(frecuencias: List[(Char, Int)]): List[ArbolHuffman] = {
-    frecuencias.map { case (caracter, peso) => HojaHuff(caracter, peso) }
-  }
+// Convierte una lista de caracteres en un string
+def listaCharsACadena(listaCar: List[Char]): String = listaCar.mkString("")
 
-  def combinar(nodos: List[ArbolHuffman]): List[ArbolHuffman] = {
-    if (nodos.length <= 1) nodos
-    else {
-      val nodosOrdenados = nodos.sortBy(_.peso)
-      val izq = nodosOrdenados.head
-      val dch = nodosOrdenados.tail.head
-      val nuevaRama = RamaHuff(izq, dch)
-      nuevaRama :: nodosOrdenados.drop(2)
-    }
-  }
+// Definición del tipo Bit y TablaCodigos
+type Bit = 0 | 1
+type TablaCodigos = List[(Char, List[Bit])]
 
-  def esListaSingleton(lista: List[ArbolHuffman]): Boolean = lista.length == 1
+// Convierte la lista de caracteres en distribución de frecuencias
+def ListaCharsADistFrec(listaChar: List[Char]): List[(Char, Int)] =
+  listaChar.groupBy(identity).view.mapValues(_.size).toList
 
-  def repetirHasta(
-                    combinar: List[ArbolHuffman] => List[ArbolHuffman],
-                    esListaSingleton: List[ArbolHuffman] => Boolean
-                  )(lista: List[ArbolHuffman]): List[ArbolHuffman] = {
-    if (esListaSingleton(lista)) lista
-    else repetirHasta(combinar, esListaSingleton)(combinar(lista))
-  }
+// Convierte la distribución en una lista de hojas ordenada
+def DistribFrecAListaHojas(frec: List[(Char, Int)]): List[HojaHuff] =
+  frec.sortBy(_._2).map { case (caracter, peso) => HojaHuff(caracter, peso) }
 
-  def crearArbolHuffman(cadena: String): ArbolHuffman = {
-    val listaChars = cadena.toList
-    val frecuencias = ListaCharsADistFrec(listaChars)
-    val listaHojas = DistribFrecAListaHojas(frecuencias)
-    repetirHasta(combinar, esListaSingleton)(listaHojas) match {
-      case List(arbol) => arbol
-      case _ => throw new IllegalStateException("Error al crear el árbol")
-    }
+// Crea un objeto RamaHuff integrando dos ArbolHuffman
+def creaRamaHuff(izq: ArbolHuffman, dch: ArbolHuffman): RamaHuff = RamaHuff(izq, dch)
+
+// Combina los dos primeros elementos de la lista y preserva el orden según el peso
+def combinar(nodos: List[ArbolHuffman]): List[ArbolHuffman] = {
+  if (nodos.length <= 1) nodos
+  else {
+    val nodosOrdenados = nodos.sortBy(_.peso)
+    val izq = nodosOrdenados.head
+    val dch = nodosOrdenados.tail.head
+    val nuevaRama = creaRamaHuff(izq, dch)
+    (nuevaRama :: nodosOrdenados.drop(2)).sortBy(_.peso)
   }
 }
 
-// Objeto para inicializar el árbol de Huffman desde una cadena
+// Comprueba si la lista tiene un solo elemento
+def esListaSingleton(lista: List[ArbolHuffman]): Boolean = lista.length == 1
+
+// Currificación para aplicar combinar hasta que haya un solo elemento
+@tailrec
+def repetirHasta(
+                  combinar: List[ArbolHuffman] => List[ArbolHuffman],
+                  esListaSingleton: List[ArbolHuffman] => Boolean
+                )(lista: List[ArbolHuffman]): List[ArbolHuffman] = {
+  if (esListaSingleton(lista)) lista
+  else repetirHasta(combinar, esListaSingleton)(combinar(lista))
+}
+
+// Crear un árbol de Huffman desde una cadena de texto
+def crearArbolHuffman(cadena: String): ArbolHuffman = {
+  val listaChars = cadenaAListaChars(cadena)
+  val frecuencias = ListaCharsADistFrec(listaChars)
+  val listaHojas = DistribFrecAListaHojas(frecuencias)
+  repetirHasta(combinar, esListaSingleton)(listaHojas) match {
+    case List(arbol) => arbol
+    case _ => throw new IllegalStateException("Error al crear el árbol")
+  }
+}
+
+// Objeto de compañía con constructor alternativo para crear el árbol
 object ArbolHuffman {
-  def apply(cadena: String): ArbolHuffman = HuffmanTreeBuilder.crearArbolHuffman(cadena)
+  def apply(cadena: String): ArbolHuffman = crearArbolHuffman(cadena)
 }
 
-// Objeto principal para ejecutar el programa
-object Main {
-  def main(args: Array[String]): Unit = {
-    val texto = "huffman"
-    val arbolHuffman = ArbolHuffman(texto)
+// Programa principal
+object MiPrograma extends App {
+  val texto = "huffman"
+  val arbolHuffman = ArbolHuffman(texto)
 
-    println("Árbol de Huffman para '" + texto + "': " + arbolHuffman)
-    println("Peso total del árbol: " + arbolHuffman.peso)
-    println("Caracteres en el árbol: " + arbolHuffman.caracteres.mkString(", "))
+  println("Árbol de Huffman para '" + texto + "': " + arbolHuffman)
+  println("Peso total del árbol: " + arbolHuffman.peso)
+  println("Caracteres en el árbol: " + arbolHuffman.caracteres.mkString(", "))
 
-    val mensaje = "man"
-    val bitsCodificados = arbolHuffman.codificar(mensaje)
-    println("Bits codificados para '" + mensaje + "': " + bitsCodificados)
+  val mensaje = "man"
+  val bitsCodificados = arbolHuffman.codificar(mensaje)
+  println("Bits codificados para '" + mensaje + "': " + bitsCodificados)
 
-    val mensajeDecodificado = arbolHuffman.decodificar(bitsCodificados)
-    println("Mensaje decodificado desde los bits: " + mensajeDecodificado)
-
-    val listaChars = texto.toList
-    val distribucionFrecuencias = HuffmanTreeBuilder.ListaCharsADistFrec(listaChars)
-    println("Distribución de frecuencias para '" + texto + "': " + distribucionFrecuencias)
-
-    val listaHojas = HuffmanTreeBuilder.DistribFrecAListaHojas(distribucionFrecuencias)
-    println("Lista de hojas generada: " + listaHojas)
-
-    val h1 = HojaHuff('a', 2)
-    val h2 = HojaHuff('b', 3)
-    val h3 = HojaHuff('c', 5)
-    val l3: List[ArbolHuffman] = List(h1, h2, h3)
-    val listaCombinada = HuffmanTreeBuilder.combinar(l3)
-    println("Lista combinada de nodos: " + listaCombinada)
-
-    val l1: List[ArbolHuffman] = List(h1, h2)
-    val l2: List[ArbolHuffman] = List(h1)
-    println("Es lista singleton (l1): " + HuffmanTreeBuilder.esListaSingleton(l1))
-    println("Es lista singleton (l2): " + HuffmanTreeBuilder.esListaSingleton(l2))
-  }
+  val mensajeDecodificado = arbolHuffman.decodificar(bitsCodificados)
+  println("Mensaje decodificado desde los bits: " + mensajeDecodificado)
 }
+
 
 
 
