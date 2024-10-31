@@ -128,3 +128,17 @@ object EjecutarPrograma extends App {
   val programa = new MiPrograma()
   programa.ejecutar()
 }
+
+
+
+///val arbolHuffmanAMano: ArbolHuffman =
+//  RamaHuff(
+//   HojaHuff ('S', 4),
+//    RamaHuff(
+//      HojaHuff('O', 3),
+//    RamaHuff(
+//        HojaHuff('E', 2),
+// HojaHuff(' ', 2),
+// )
+// )
+// )
