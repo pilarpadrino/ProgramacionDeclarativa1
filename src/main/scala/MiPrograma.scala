@@ -104,32 +104,27 @@ object ArbolHuffman {
   def apply(cadena: String): ArbolHuffman = crearArbolHuffman(cadena)
 }
 
-// Programa de prueba en el objeto principal
-object miPrograma extends App {
-  val texto = "huffman"
-  val arbolHuffman = ArbolHuffman(texto)
-  println("Árbol de Huffman para '" + texto + "': " + arbolHuffman)
-  println("Peso total del árbol: " + arbolHuffman.peso)
-  println("Caracteres en el árbol: " + arbolHuffman.caracteres.mkString(", "))
-  val mensaje = "man"
-  val bitsCodificados = arbolHuffman.codificar(mensaje)
-  println("Bits codificados para '" + mensaje + "': " + bitsCodificados)
-  val mensajeDecodificado = arbolHuffman.decodificar(bitsCodificados)
-  println("Mensaje decodificado desde los bits: " + mensajeDecodificado)
+// Clase principal MiPrograma
+class MiPrograma {
+  def ejecutar(): Unit = {
+    val texto = "huffman"
+    val arbolHuffman = ArbolHuffman(texto)
+    println("Árbol de Huffman para '" + texto + "': " + arbolHuffman)
+    println("Peso total del árbol: " + arbolHuffman.peso)
+    println("Caracteres en el árbol: " + arbolHuffman.caracteres.mkString(", "))
+
+    val mensaje = "man"
+    val bitsCodificados = arbolHuffman.codificar(mensaje)
+    println("Bits codificados para '" + mensaje + "': " + bitsCodificados)
+
+    val mensajeDecodificado = arbolHuffman.decodificar(bitsCodificados)
+    println("Mensaje decodificado desde los bits: " + mensajeDecodificado)
+  }
 }
 
 
-
-
-
-///val arbolHuffmanAMano: ArbolHuffman =
-//  RamaHuff(
- //   HojaHuff ('S', 4),
-//    RamaHuff(
-//      HojaHuff('O', 3),
-  //    RamaHuff(
-//        HojaHuff('E', 2),
-       // HojaHuff(' ', 2),
-     // )
-   // )
- // )
+// Al final del archivo `MiPrograma.scala`
+object EjecutarPrograma extends App {
+  val programa = new MiPrograma()
+  programa.ejecutar()
+}
