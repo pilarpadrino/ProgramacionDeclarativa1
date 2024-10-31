@@ -42,7 +42,14 @@ sealed abstract class ArbolHuffman {
         else caminoParaCaracter(dch, caracter, camino :+ 1)
       case _ => List()
     }
-    cadena.toList.flatMap(caracter => caminoParaCaracter(this, caracter, List()))
+
+    def codificarLista(cadena: List[Char], acumulado: List[Bit]): List[Bit] = cadena match {
+      case Nil => acumulado
+      case cabeza :: cola =>
+        codificarLista(cola, acumulado ++ caminoParaCaracter(this, cabeza, List()))
+    }
+
+    codificarLista(cadena.toList, List())
   }
 }
 
@@ -56,12 +63,22 @@ def listaCharsACadena(listaCar: List[Char]): String = listaCar.mkString
 
 // Función para la distribución de frecuencias
 def ListaCharsADistFrec(listaChar: List[Char]): List[(Char, Int)] = {
-  listaChar.groupBy(identity).view.mapValues(_.size).toList
+  val agrupado = listaChar.groupBy(identity)
+  var resultado: List[(Char, Int)] = List()
+  for ((caracter, ocurrencias) <- agrupado) {
+    resultado = resultado :+ (caracter, ocurrencias.size)
+  }
+  resultado
 }
 
 // Función para convertir la distribución de frecuencias a una lista de hojas
 def DistribFrecAListaHojas(frec: List[(Char, Int)]): List[HojaHuff] = {
-  frec.sortBy(_._2).map { case (caracter, peso) => HojaHuff(caracter, peso) }
+  val frecOrdenada = frec.sortBy(_._2)
+  var listaHojas: List[HojaHuff] = List()
+  for ((caracter, peso) <- frecOrdenada) {
+    listaHojas = listaHojas :+ HojaHuff(caracter, peso)
+  }
+  listaHojas
 }
 
 // Función para crear una rama Huffman
@@ -121,7 +138,6 @@ class MiPrograma {
     println("Mensaje decodificado desde los bits: " + mensajeDecodificado)
   }
 }
-
 
 // Al final del archivo `MiPrograma.scala`
 object EjecutarPrograma extends App {
