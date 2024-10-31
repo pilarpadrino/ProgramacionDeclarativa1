@@ -5,7 +5,7 @@ import scala.collection.mutable.ListBuffer
 type Bit = 0 | 1
 
 // Clase base para el Árbol de Huffman
-sealed abstract class ArbolHuffman {
+abstract class ArbolHuffman {
   def peso: Int = this match {
     case HojaHuff(_, pesoHoja) => pesoHoja
     case RamaHuff(izq, dch) => izq.peso + dch.peso
@@ -142,6 +142,7 @@ object Main {
     println("Es lista singleton (l2): " + HuffmanTreeBuilder.esListaSingleton(l2))
   }
 }
+
 
 
 
