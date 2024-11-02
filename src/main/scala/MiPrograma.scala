@@ -130,7 +130,7 @@ class MiPrograma {
     println("Peso total del árbol: " + arbolHuffman.peso)
     println("Caracteres en el árbol: " + arbolHuffman.caracteres.mkString(", "))
 
-    val mensaje = "man"
+    val mensaje = "huffman"
     val bitsCodificados = arbolHuffman.codificar(mensaje)
     println("Bits codificados para '" + mensaje + "': " + bitsCodificados)
 
@@ -145,16 +145,24 @@ object EjecutarPrograma extends App {
   programa.ejecutar()
 }
 
+// Implementación de Decodificación con Árbol de Huffman manual
+object DecodificacionApp extends App {
+  // Definición de un árbol de Huffman manual
+  val arbolHuffmanManual = RamaHuff(
+    RamaHuff(HojaHuff('u', 1), RamaHuff(HojaHuff('m', 1), HojaHuff('h', 1))),
+    RamaHuff(RamaHuff(HojaHuff('n', 1), HojaHuff('a', 1)), HojaHuff('f', 2))
+  )
+
+  // Lista de bits a decodificar que representarán "huffman"
+  val bits: List[Bit] = List(0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0)
+
+  // Decodificación del mensaje
+  val mensajeDecodificado = arbolHuffmanManual.decodificar(bits)
+
+  // Impresión del mensaje decodificado
+  println(s"Mensaje decodificado: $mensajeDecodificado")
+}
 
 
-val arbolHuffmanAMano: ArbolHuffman =
-  RamaHuff(
-   HojaHuff ('S', 4),
-    RamaHuff(
-      HojaHuff('O', 3),
-    RamaHuff(
-        HojaHuff('E', 2),
- HojaHuff(' ', 2),
- )
- )
- )
+
+
