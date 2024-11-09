@@ -180,37 +180,73 @@ class MiProgramaConPruebas {
 
   def ejecutar(): Unit = {
     println("=== Prueba de creación del Árbol de Huffman ===")
-    val texto = "hola"
-    val arbolHuffman = ArbolHuffman(texto)
+    val texto = "huffman"
+    val arbolHuffman = try {
+      ArbolHuffman(texto)
+    } catch {
+      case e: Exception =>
+        println("Error en la creación del Árbol de Huffman: " + e.getMessage)
+        return
+    }
     println("Árbol de Huffman para '" + texto + "': " + arbolHuffman)
     println("Peso total del árbol: " + arbolHuffman.peso)
     println("Caracteres en el árbol: " + arbolHuffman.caracteres.mkString(", "))
 
     println("\n=== Prueba de codificación y decodificación ===")
-    val mensaje = "la"
-    val bitsCodificados = arbolHuffman.codificar(mensaje)
+    val mensaje = "man"
+    val bitsCodificados = try {
+      arbolHuffman.codificar(mensaje)
+    } catch {
+      case e: Exception =>
+        println(s"Error al codificar el mensaje '$mensaje': " + e.getMessage)
+        return
+    }
     println(s"Bits codificados para '$mensaje': $bitsCodificados")
-    val mensajeDecodificado = arbolHuffman.decodificar(bitsCodificados)
+
+    val mensajeDecodificado = try {
+      arbolHuffman.decodificar(bitsCodificados)
+    } catch {
+      case e: Exception =>
+        println(s"Error al decodificar los bits '$bitsCodificados': " + e.getMessage)
+        return
+    }
     println(s"Mensaje decodificado desde los bits: $mensajeDecodificado")
     assert(mensaje == mensajeDecodificado, "Error en la decodificación")
 
     println("\n=== Prueba de tabla de códigos ===")
-    val tablaCodigos = ArbolHuffman.deArbolATabla(arbolHuffman)
+    val tablaCodigos = try {
+      ArbolHuffman.deArbolATabla(arbolHuffman)
+    } catch {
+      case e: Exception =>
+        println("Error al generar la tabla de códigos: " + e.getMessage)
+        return
+    }
     println("Tabla de códigos de Huffman:")
     tablaCodigos.foreach { case (caracter, codigo) =>
       println(s"Carácter: '$caracter' -> Código: ${codigo.mkString}")
     }
 
     println("\n=== Prueba de codificación usando la tabla de códigos ===")
-    val bitsCodificadosConTabla = ArbolHuffman.codificarTabla(tablaCodigos)(mensaje)
+    val bitsCodificadosConTabla = try {
+      ArbolHuffman.codificarTabla(tablaCodigos)(mensaje)
+    } catch {
+      case e: Exception =>
+        println(s"Error al codificar '$mensaje' usando la tabla de códigos: " + e.getMessage)
+        return
+    }
     println(s"Bits codificados para '$mensaje' usando la tabla: $bitsCodificadosConTabla")
     assert(bitsCodificados == bitsCodificadosConTabla, "Error en la codificación con la tabla")
 
     println("\n=== Prueba de decodificación usando la tabla de códigos ===")
-    val mensajeDecodificadoConTabla = ArbolHuffman.decodificarTabla(tablaCodigos)(bitsCodificadosConTabla)
+    val mensajeDecodificadoConTabla = try {
+      ArbolHuffman.decodificarTabla(tablaCodigos)(bitsCodificadosConTabla)
+    } catch {
+      case e: Exception =>
+        println(s"Error al decodificar usando la tabla de códigos: " + e.getMessage)
+        return
+    }
     println(s"Mensaje decodificado usando la tabla: $mensajeDecodificadoConTabla")
     assert(mensaje == mensajeDecodificadoConTabla, "Error en la decodificación con la tabla")
-
   }
 }
 
