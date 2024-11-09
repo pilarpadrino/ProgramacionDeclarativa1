@@ -21,16 +21,17 @@ abstract class ArbolHuffman {
     @scala.annotation.tailrec
     def decodAux(subarbol: ArbolHuffman, bitsRestantes: List[Bit], resultado: String): String = subarbol match {
       case HojaHuff(caracter, _) =>
+        // Si llega a una hoja, agrega el carácter al resultado
         if (bitsRestantes.isEmpty) resultado + caracter
-        else decodAux(this, bitsRestantes, resultado + caracter)
+        else decodAux(this, bitsRestantes, resultado + caracter) // Re-inicia en el árbol principal si quedan bits por decodificar
       case RamaHuff(izq, dch) =>
         bitsRestantes match {
-          case Nil => resultado
+          case Nil => resultado // Si no quedan bits, retorna el resultado
           case 0 :: tail => decodAux(izq, tail, resultado)
           case 1 :: tail => decodAux(dch, tail, resultado)
         }
     }
-    decodAux(this, bits, "")
+    decodAux(this, bits, "") // Llama a la función auxiliar con el árbol, los bits y un resultado vacío
   }
 
   // Verificar si el árbol contiene un carácter específico
@@ -41,6 +42,7 @@ abstract class ArbolHuffman {
 
   // Codificar una cadena en bits usando el árbol de Huffman
   def codificar(cadena: String): List[Bit] = {
+    // Encuentra el camino (lista de bits) para un carácter en el árbol
     def caminoParaCaracter(subarbol: ArbolHuffman, caracter: Char, camino: List[Bit]): List[Bit] = subarbol match {
       case HojaHuff(c, _) if c == caracter => camino
       case RamaHuff(izq, dch) =>
@@ -49,6 +51,7 @@ abstract class ArbolHuffman {
       case _ => List()
     }
 
+    // Codificar cada carácter de la cadena
     def codificarLista(cadena: List[Char], acumulado: List[Bit]): List[Bit] = cadena match {
       case Nil => acumulado
       case cabeza :: cola =>
@@ -66,7 +69,7 @@ abstract class ArbolHuffman {
         generarTabla(izq, camino :+ 0) ++ generarTabla(dch, camino :+ 1)
     }
 
-    generarTabla(this, List())
+    generarTabla(this, List()) // Inicia la generación de la tabla con un camino vacío
   }
 }
 
@@ -78,24 +81,20 @@ case class RamaHuff(izq: ArbolHuffman, dch: ArbolHuffman) extends ArbolHuffman
 def cadenaAListaChars(cadena: String): List[Char] = cadena.toList
 def listaCharsACadena(listaCar: List[Char]): String = listaCar.mkString
 
-// Función para calcular la distribución de frecuencias de caracteres
+// Función que calcula la frecuencia de cada carácter en una lista de caracteres
 def ListaCharsADistFrec(listaChar: List[Char]): List[(Char, Int)] = {
-  val agrupado = listaChar.groupBy(identity)
-  var resultado: List[(Char, Int)] = List()
-  for ((caracter, ocurrencias) <- agrupado) {
-    resultado = resultado :+ (caracter, ocurrencias.size)
-  }
-  resultado
+  // Agrupa los caracteres por identidad y mapea cada grupo al par (caracter, tamaño del grupo)
+  listaChar.groupBy(identity).map { case (caracter, ocurrencias) =>
+    (caracter, ocurrencias.size) // Par (carácter, frecuencia)
+  }.toList // Convierte el resultado final en una lista de pares
 }
 
-// Función para convertir la distribución de frecuencias en una lista de hojas de Huffman
+// Función que convierte la distribución de frecuencias en una lista de hojas de Huffman
 def DistribFrecAListaHojas(frec: List[(Char, Int)]): List[HojaHuff] = {
-  val frecOrdenada = frec.sortBy(_._2)
-  var listaHojas: List[HojaHuff] = List()
-  for ((caracter, peso) <- frecOrdenada) {
-    listaHojas = listaHojas :+ HojaHuff(caracter, peso)
+  // Ordena la lista de frecuencias por peso y luego mapea cada par (caracter, peso) a una hoja de Huffman
+  frec.sortBy(_._2).map { case (caracter, peso) =>
+    HojaHuff(caracter, peso) // Crea una hoja para cada par
   }
-  listaHojas
 }
 
 // Función para crear una rama en el árbol de Huffman
@@ -215,15 +214,11 @@ class MiProgramaConPruebas {
   }
 }
 
-
 // Ejecutar el programa
 object EjecutarPrograma extends App {
   val programa = new MiProgramaConPruebas()
   programa.ejecutar()
 }
-
-
-
 
 // Implementación de Decodificación con Árbol de Huffman manual
 object DecodificacionApp extends App {
